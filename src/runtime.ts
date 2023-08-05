@@ -1,5 +1,5 @@
-import { ComputedRef, Ref, ToRefs, computed, effect, effectScope, ref } from "@vue/reactivity"
 import { TemplateResult, render as diff, nothing } from "lit-html"
+import { Signal, createEffect, createMemo, createRoot, createSignal } from "solid-js"
 import { z } from "zod"
 import { Context, ContextEvent, UnknownContext } from "./context"
 
@@ -7,26 +7,25 @@ export interface SetupOptions<Props = {}> {
     instance: HTMLElement
     onMount: (callback: () => void) => void
     onCleanup: (callback: () => void) => void
-    props: ToRefs<Props>
+    props: Props
 }
 
 export function provide<T>({ context, data }: { context: Context<T>; data: () => T }): void {
     document.addEventListener("context-request", event => {
         const evt = event as ContextEvent<UnknownContext>
-        const memoized = computed(data)
+        const memoized = createMemo(data)
         if (evt.context.name === context.name) {
             evt.stopPropagation()
-            const scope = effectScope()
-            scope.run(() => effect(() => evt.callback(memoized.value, scope.stop)))
+            createRoot(dispose => createEffect(() => evt.callback(memoized(), dispose)))
         }
     })
 }
 
-export function consume<T>({ context }: { context: Context<T> }): Ref<T> {
-    const data = ref()
-    const event = new ContextEvent(context, value => (data.value = value))
+export function consume<T>({ context }: { context: Context<T> }): Signal<T | undefined> {
+    const [data, setData] = createSignal<T>()
+    const event = new ContextEvent(context, value => setData(value as any))
     document.dispatchEvent(event)
-    return data
+    return [data, setData] as Signal<T | undefined>
 }
 
 export function createElement(
@@ -50,26 +49,36 @@ export function createElement(options: any): CustomElementConstructor {
     return class extends HTMLElement {
         inits: (() => void)[] = []
         deinits: (() => void)[] = []
-        attrs = new Map<string, Ref<any>>()
+        attrs = new Map<string, Signal<any>>()
 
         constructor() {
             super()
 
             if (props) {
                 for (const key of Object.keys(props.shape)) {
-                    this.attrs.set(key, ref())
+                    this.attrs.set(key, createSignal())
                 }
             }
 
             const root = this.attachShadow({ mode: "open" })
-            const render = setup({
-                instance: this,
-                props: Object.fromEntries(this.attrs),
-                onMount: callback => this.inits.push(callback),
-                onCleanup: callback => this.deinits.push(callback),
-            })
 
-            effect(() => diff(render(), root))
+            createRoot(dispose => {
+                this.deinits.push(dispose)
+
+                let props = {}
+                for (const [key, [get, set]] of this.attrs) {
+                    Object.defineProperty(props, key, { get, set })
+                }
+
+                const render = setup({
+                    instance: this,
+                    props,
+                    onMount: callback => this.inits.push(callback),
+                    onCleanup: callback => this.deinits.push(callback),
+                })
+
+                createEffect(() => diff(render(), root))
+            })
         }
 
         static get observedAttributes() {
@@ -79,7 +88,10 @@ export function createElement(options: any): CustomElementConstructor {
         attributeChangedCallback(name: string, oldValue: any, newValue: any) {
             // console.log(name, oldValue, newValue)
             const signal = this.attrs.get(name)
-            if (signal) signal.value = newValue
+            if (signal) {
+                const [_, setAttr] = signal
+                setAttr(newValue)
+            }
         }
 
         connectedCallback() {
@@ -101,18 +113,18 @@ export function show(
         when,
         fallback = nothing,
     }: {
-        when: ComputedRef<boolean>
+        when: () => boolean
         fallback?: TemplateResult | typeof nothing
     },
     children: () => TemplateResult
 ) {
-    const template = computed(() => {
-        if (when.value) {
-            return children()
+    const template = createMemo(() => {
+        if (when()) {
+            return children
         }
 
         return fallback
     })
 
-    return template.value
+    return template()
 }

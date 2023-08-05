@@ -1,16 +1,16 @@
 import {
-    computed,
     consume,
     consumeLoaderData,
     consumeLocation,
     createContext,
+    createEffect,
     createElement,
-    effect,
+    createMemo,
+    createSignal,
     html,
     linkHandler,
     provide,
     provideRouter,
-    ref,
     show,
     z,
 } from "./orbital"
@@ -18,14 +18,14 @@ import {
 export const countContext = createContext<number>("my-count")
 
 const Counter = createElement(() => {
-    const count = ref(0)
-    const increment = () => (count.value = count.value + 1)
-    provide({ context: countContext, data: () => count.value })
+    const [count, setCount] = createSignal(0)
+    const increment = () => setCount(c => c + 1)
+    provide({ context: countContext, data: count })
 
     const data = consumeLoaderData<typeof counterLoader>("app-counter")
 
     const location = consumeLocation()
-    const isVisible = computed(() => location.value.pathname === "/other")
+    const isVisible = createMemo(() => location?.pathname === "/other")
 
     return () => html`
         <style>
@@ -47,16 +47,16 @@ const Counter = createElement(() => {
                 width: 50%;
             }
         </style>
-        <div class="count">${count.value}</div>
+        <div class="count">${count()}</div>
         <button type="button" @click=${increment}>Increment</button>
-        <code>Loader data: ${JSON.stringify(data.value, null, 4)}</code>
+        <code>Loader data: ${JSON.stringify(data(), null, 4)}</code>
         <div class="nav">
             <a href="/" @click=${linkHandler}>Go home</a> |
             <a href="child" @click=${linkHandler}>Go to child</a> |
             <a href="other" @click=${linkHandler}>Go to other</a>
         </div>
         <remix-outlet>
-            <app-child foo="${count.value}" slot="app-child"></app-child>
+            <app-child foo="${count()}" slot="app-child"></app-child>
             <!-- conditional to demonstrate lifecycle functions -->
             ${show({ when: isVisible }, () => html`<app-other slot="app-other"></app-other>`)}
         </remix-outlet>
@@ -65,28 +65,26 @@ const Counter = createElement(() => {
 
 const Child = createElement({
     props: z.object({ foo: z.string() }),
-    setup: ({ props: { foo } }) => {
-        const count = consume({ context: countContext })
-        const color = computed(() => ((count.value ?? 0) % 2 === 0 ? "blue" : "red"))
+    setup: ({ props }) => {
+        const [count] = consume({ context: countContext })
+        const color = createMemo(() => ((count() ?? 0) % 2 === 0 ? "blue" : "red"))
 
         const data = consumeLoaderData<typeof childLoader>("app-child")
 
         // reactive props
-        effect(() => console.log(foo.value))
+        createEffect(() => console.log(props.foo))
 
         return () => html`
             <style>
                 .count {
-                    color: ${color.value};
+                    color: ${color()};
                     font-family: sans-serif;
                     font-weight: bold;
                     font-size: 32px;
                 }
             </style>
-            <div class="count">${count.value}</div>
-            <code id="child-loader-data">
-                Loader data: ${JSON.stringify(data.value, null, 4)}
-            </code>
+            <div class="count">${count()}</div>
+            <code id="child-loader-data">Loader data: ${JSON.stringify(data(), null, 4)}</code>
         `
     },
 })

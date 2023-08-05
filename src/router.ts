@@ -8,9 +8,10 @@ import {
     createBrowserHistory,
     createRouter,
 } from "@remix-run/router"
-import { ComputedRef, Ref, computed, effect, ref } from "@vue/reactivity"
 import { html } from "lit-html"
+import { createStore } from "solid-js/store"
 import { createContext } from "./context"
+import { Accessor, createEffect, createMemo } from "./orbital"
 import { consume, createElement, provide } from "./runtime"
 
 export const routerContext = createContext<Router>("remix-router")
@@ -21,48 +22,49 @@ export function provideRouter(routes: AgnosticRouteObject[]) {
     provide({ context: routerContext, data: () => router })
 }
 
-export function consumeRouterState(): Ref<RouterState> {
-    const router = consume({ context: routerContext })
-    const state = ref(router.value.state)
+export function consumeRouterState(): RouterState | undefined {
+    const [router] = consume({ context: routerContext })
 
+    const [store, setStore] = createStore(router()?.state)
     let dispose: (() => void) | undefined = undefined
 
-    effect(() => {
+    createEffect(() => {
         if (dispose) dispose()
-        dispose = router.value.subscribe(s => {
-            state.value = s as any
+        dispose = router()?.subscribe(s => {
+            setStore(s)
         })
     })
 
-    return state as any
+    return store
 }
 
-export function consumeNavigate(): ComputedRef<{
-    (to: number): Promise<void>
-    (to: To | null, opts?: RouterNavigateOptions | undefined): Promise<void>
-}> {
-    const router = consume({ context: routerContext })
-    return computed(() => router.value.navigate)
+export function consumeNavigate(): Accessor<
+    | {
+          (to: number): Promise<void>
+          (to: To | null, opts?: RouterNavigateOptions | undefined): Promise<void>
+      }
+    | undefined
+> {
+    const [router] = consume({ context: routerContext })
+    return createMemo(() => router()?.navigate)
 }
 
-export function consumeLocation(): ComputedRef<Location> {
-    const state = consumeRouterState()
-    return computed(() => state.value.location)
+export function consumeLocation(): Location | undefined {
+    return consumeRouterState()?.location
 }
 
 export function consumeLoaderData<T extends (...args: any) => any>(
     id: string
-): Ref<Awaited<ReturnType<T>>> {
-    const state = consumeRouterState()
-    return computed(() => state.value.loaderData?.[id])
+): Accessor<Awaited<ReturnType<T>>> {
+    return createMemo(() => consumeRouterState()?.loaderData?.[id])
 }
 
 // FIXME: This currently only works one level deep
 const Outlet = createElement(() => {
     const state = consumeRouterState()
-    const childIds = computed(() => state.value?.matches?.map(match => match.route.id))
-    const name = computed(() => childIds.value?.[1] ?? "")
-    return () => html`<slot name=${name.value}></slot>`
+    const childIds = createMemo(() => state?.matches?.map(match => match.route.id))
+    const name = createMemo(() => childIds()?.[1] ?? "")
+    return () => html`<slot name=${name()}></slot>`
 })
 
 customElements.define("remix-outlet", Outlet)
@@ -77,5 +79,5 @@ export function linkHandler(e: Event) {
     if (anchor === undefined) {
         throw new Error("(link handler) event must have an anchor element in its composed path.")
     }
-    navigate.value?.(new URL(anchor.href).pathname)
+    navigate()?.(new URL(anchor.href).pathname)
 }

@@ -9,16 +9,15 @@
         "preview": "vite preview"
     },
     "devDependencies": {
+        "@rollup/plugin-typescript": "^11.1.2",
+        "tslib": "^2.6.1",
         "typescript": "^5.1.6",
         "vite": "^4.4.5"
     },
     "dependencies": {
         "@remix-run/router": "^1.7.2",
-        "@rollup/plugin-typescript": "^11.1.2",
-        "@vue/reactivity": "^3.3.4",
-        "esbuild-plugin-tsc": "^0.4.0",
         "lit-html": "^2.7.5",
-        "tslib": "^2.6.1",
+        "solid-js": "^1.7.9",
         "zod": "^3.21.4"
     },
     "prettier": {
