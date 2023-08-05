@@ -61,6 +61,7 @@ export function createElement(options: any): CustomElementConstructor {
             createRoot(dispose => {
                 this.deinits.push(dispose)
 
+                // This is actually for attributes, not properties:
                 if (props) {
                     for (const key of Object.keys(props.shape)) {
                         this.attrs.set(key, createSignal())

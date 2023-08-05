@@ -17,7 +17,8 @@ Orbital is a bespoke, minimal UI runtime for web apps that tries to use the plat
 - [x] Client-side routing
 - [x] Parallel route loaders
 - [x] Lifecycle functions
-- [x] Reactive props
+- [x] Reactive attributes
+- [ ] Reactive properties
 - [ ] Scoped context
 - [ ] Synchronous context
 - [ ] Nested routing
@@ -25,18 +26,15 @@ Orbital is a bespoke, minimal UI runtime for web apps that tries to use the plat
 - [ ] Error boundaries
 - [ ] [Hot module reloading](https://github.com/sync/plugin-lit-refresh)
 - [ ] VS Code extension
-- [ ] Suspense/asyncronous rendering
 - [ ] [Unstyled components](https://react-spectrum.adobe.com/react-aria/react-aria-components.html)
-- [ ] [Realtime, offline caching](https://replicache.dev)
-- [ ] [Animation primitives](https://motion.dev/guides/quick-start)
-- [ ] [Full dependency injection system](https://angular.io/guide/dependency-injection-providers)
-- [ ] [Directives](https://angular.io/guide/attribute-directives)
+- [ ] Suspense/asyncronous rendering
 
 **Meta-Framework:**
 
+- [ ] [Astro support](https://dev.to/thepassle/server-side-rendering-vanilla-custom-elements-in-astro-5hgg)
 - [ ] [File system routing](https://remix.run/docs/en/1.19.1/file-conventions/route-files-v2)
 - [ ] Server-side loaders & actions
-- [ ] [Server-side rendering (and pre-rendering)](https://dev.to/thepassle/server-side-rendering-vanilla-custom-elements-in-astro-5hgg)
+- [ ] [Server-side rendering (and pre-rendering)](https://lit.dev/docs/ssr/client-usage/#standalone-lit-templates)
 - [ ] Runtime-agnostic deployment adapters
 - [ ] [Out-of-order streaming](https://remix.run/docs/en/1.19.1/guides/streaming#using-defer)
 - [ ] [Partial hydration](https://jasonformat.com/islands-architecture/)

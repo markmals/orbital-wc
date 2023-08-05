@@ -3,6 +3,7 @@ import {
     consumeLoaderData,
     consumeLocation,
     createContext,
+    createEffect,
     createElement,
     createMemo,
     createSignal,
@@ -19,6 +20,7 @@ export const countContext = createContext<number>("my-count")
 const Counter = createElement(() => {
     const [count, setCount] = createSignal(0)
     const increment = () => setCount(c => c + 1)
+
     provide({ context: countContext, data: count })
 
     const data = consumeLoaderData<typeof counterLoader>("app-counter")
@@ -55,7 +57,8 @@ const Counter = createElement(() => {
             <a href="other" @click=${linkHandler}>Go to other</a>
         </div>
         <remix-outlet>
-            <app-child foo="${count()}" slot="app-child"></app-child>
+            <!-- TODO: Support properties as well as attributes -->
+            <app-child foo="${count()}" .bar=${count()} slot="app-child"></app-child>
             <!-- conditional to demonstrate lifecycle functions -->
             ${show({ when: isVisible }, () => html`<app-other slot="app-other"></app-other>`)}
         </remix-outlet>
@@ -70,8 +73,8 @@ const Child = createElement({
 
         const data = consumeLoaderData<typeof childLoader>("app-child")
 
-        // reactive props
-        // createEffect(() => console.log(props.foo))
+        // reactive attrs
+        createEffect(() => console.log(props.foo))
 
         return () => html`
             <style>
