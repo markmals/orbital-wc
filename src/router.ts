@@ -9,7 +9,7 @@ import {
     createRouter,
 } from "@remix-run/router"
 import { html } from "lit-html"
-import { createStore } from "solid-js/store"
+import { createRoot, from } from "solid-js"
 import { createContext } from "./context"
 import { Accessor, createEffect, createMemo } from "./orbital"
 import { consume, createElement, provide } from "./runtime"
@@ -22,20 +22,18 @@ export function provideRouter(routes: AgnosticRouteObject[]) {
     provide({ context: routerContext, data: () => router })
 }
 
-export function consumeRouterState(): RouterState | undefined {
+export function consumeRouterState(): Accessor<RouterState | undefined> {
     const [router] = consume({ context: routerContext })
-
-    const [store, setStore] = createStore(router()?.state)
     let dispose: (() => void) | undefined = undefined
 
-    createEffect(() => {
-        if (dispose) dispose()
-        dispose = router()?.subscribe(s => {
-            setStore(s)
+    return from(set => {
+        createEffect(() => {
+            if (dispose) dispose()
+            dispose = router()?.subscribe(state => set(state))
         })
-    })
 
-    return store
+        return dispose ?? (() => {})
+    })
 }
 
 export function consumeNavigate(): Accessor<
@@ -49,20 +47,22 @@ export function consumeNavigate(): Accessor<
     return createMemo(() => router()?.navigate)
 }
 
-export function consumeLocation(): Location | undefined {
-    return consumeRouterState()?.location
+export function consumeLocation(): Accessor<Location | undefined> {
+    const state = consumeRouterState()
+    return createMemo(() => state()?.location)
 }
 
 export function consumeLoaderData<T extends (...args: any) => any>(
     id: string
 ): Accessor<Awaited<ReturnType<T>>> {
-    return createMemo(() => consumeRouterState()?.loaderData?.[id])
+    const state = consumeRouterState()
+    return createMemo(() => state()?.loaderData?.[id])
 }
 
 // FIXME: This currently only works one level deep
 const Outlet = createElement(() => {
     const state = consumeRouterState()
-    const childIds = createMemo(() => state?.matches?.map(match => match.route.id))
+    const childIds = createMemo(() => state()?.matches?.map(match => match.route.id))
     const name = createMemo(() => childIds()?.[1] ?? "")
     return () => html`<slot name=${name()}></slot>`
 })
@@ -70,14 +70,20 @@ const Outlet = createElement(() => {
 customElements.define("remix-outlet", Outlet)
 
 export function linkHandler(e: Event) {
-    const navigate = consumeNavigate()
-
     e.preventDefault()
     let anchor = e
         .composedPath()
         .find((t): t is HTMLAnchorElement => t instanceof HTMLAnchorElement)
-    if (anchor === undefined) {
-        throw new Error("(link handler) event must have an anchor element in its composed path.")
-    }
-    navigate()?.(new URL(anchor.href).pathname)
+
+    createRoot(() => {
+        const navigate = consumeNavigate()
+        createEffect(() => {
+            if (anchor === undefined) {
+                throw new Error(
+                    "(link handler) event must have an anchor element in its composed path."
+                )
+            }
+            navigate()?.(new URL(anchor.href).pathname)
+        })
+    })
 }

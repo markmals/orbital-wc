@@ -12,12 +12,14 @@ export interface SetupOptions<Props = {}> {
 
 export function provide<T>({ context, data }: { context: Context<T>; data: () => T }): void {
     document.addEventListener("context-request", event => {
-        const evt = event as ContextEvent<UnknownContext>
-        const memoized = createMemo(data)
-        if (evt.context.name === context.name) {
-            evt.stopPropagation()
-            createRoot(dispose => createEffect(() => evt.callback(memoized(), dispose)))
-        }
+        createRoot(dispose => {
+            const evt = event as ContextEvent<UnknownContext>
+            const memoized = createMemo(data)
+            if (evt.context.name === context.name) {
+                evt.stopPropagation()
+                createEffect(() => evt.callback(memoized(), dispose))
+            }
+        })
     })
 }
 
@@ -54,25 +56,25 @@ export function createElement(options: any): CustomElementConstructor {
         constructor() {
             super()
 
-            if (props) {
-                for (const key of Object.keys(props.shape)) {
-                    this.attrs.set(key, createSignal())
-                }
-            }
-
             const root = this.attachShadow({ mode: "open" })
 
             createRoot(dispose => {
                 this.deinits.push(dispose)
 
-                let props = {}
+                if (props) {
+                    for (const key of Object.keys(props.shape)) {
+                        this.attrs.set(key, createSignal())
+                    }
+                }
+
+                let reactiveProps = {}
                 for (const [key, [get, set]] of this.attrs) {
-                    Object.defineProperty(props, key, { get, set })
+                    Object.defineProperty(reactiveProps, key, { get, set })
                 }
 
                 const render = setup({
                     instance: this,
-                    props,
+                    props: reactiveProps,
                     onMount: callback => this.inits.push(callback),
                     onCleanup: callback => this.deinits.push(callback),
                 })
@@ -120,7 +122,7 @@ export function show(
 ) {
     const template = createMemo(() => {
         if (when()) {
-            return children
+            return children()
         }
 
         return fallback

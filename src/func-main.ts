@@ -3,7 +3,6 @@ import {
     consumeLoaderData,
     consumeLocation,
     createContext,
-    createEffect,
     createElement,
     createMemo,
     createSignal,
@@ -25,7 +24,7 @@ const Counter = createElement(() => {
     const data = consumeLoaderData<typeof counterLoader>("app-counter")
 
     const location = consumeLocation()
-    const isVisible = createMemo(() => location?.pathname === "/other")
+    const isVisible = createMemo(() => location()?.pathname === "/other")
 
     return () => html`
         <style>
@@ -72,7 +71,7 @@ const Child = createElement({
         const data = consumeLoaderData<typeof childLoader>("app-child")
 
         // reactive props
-        createEffect(() => console.log(props.foo))
+        // createEffect(() => console.log(props.foo))
 
         return () => html`
             <style>
