@@ -77,6 +77,7 @@ customElements.define("app-gallery", Gallery)
 -   [ ] Nested routing
 -   [ ] Form actions
 -   [ ] Error boundaries
+-   [ ] Automatically wrap link handlers in reactive root
 -   [ ] [Hot module reloading](https://github.com/sync/plugin-lit-refresh)
 -   [ ] VS Code extension
 -   [ ] [Unstyled components](https://react-spectrum.adobe.com/react-aria/react-aria-components.html)
