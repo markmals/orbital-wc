@@ -15,7 +15,7 @@ const galleryProps = z.object({
         name: z.string(),
         artist: z.string(),
         description: z.string(),
-        url: z.url(),
+        url: z.string().url(),
         alt: z.string(),
     }),
 })

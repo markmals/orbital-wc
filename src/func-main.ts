@@ -14,6 +14,7 @@ import {
     show,
     z,
 } from "./orbital"
+import { computed, signal } from "./signal"
 
 export const countContext = createContext<number>("my-count")
 
@@ -182,3 +183,47 @@ customElements.define("app-other", Other)
 //     dispatchLocalEvent()
 //     return () => 'hello'
 // })
+
+const Gallery = createElement({
+    props: z.object({
+        sculpture: z.object({
+            name: z.string(),
+            artist: z.string(),
+            description: z.string(),
+            url: z.string().url(),
+            alt: z.string(),
+        }),
+    }),
+    setup: ({ props }) => {
+        const showMore = signal(false)
+        const color = computed(() => (showMore() ? "red" : "blue"))
+
+        function toggleShowMore() {
+            showMore.set(show => !show)
+        }
+
+        return () => html`
+            <!-- Scoped styles re-render reactively, just like the template -->
+            <style>
+                button {
+                    color: white;
+                    background-color: ${color()};
+                    font-family: sans-serif;
+                }
+            </style>
+            <section>
+                <h2>
+                    <i>${props.sculpture.name}</i>
+                    by ${props.sculpture.artist}
+                </h2>
+                <button @click=${toggleShowMore}>
+                    ${show({ when: showMore, fallback: html`Show` }, () => html`Hide`)} details
+                </button>
+                ${show({ when: showMore }, () => html`<p>${props.sculpture.description}</p>`)}
+                <img src="${props.sculpture.url}" alt="${props.sculpture.alt}" />
+            </section>
+        `
+    },
+})
+
+customElements.define("app-gallery", Gallery)
