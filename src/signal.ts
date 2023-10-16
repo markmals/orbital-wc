@@ -52,7 +52,7 @@ export function resource<T, S, R = unknown>(
 ): ResourceReturn<T, R>
 export function resource(source: any, fetcher?: any, options?: any) {
     const [r, actions] = createResource(source, fetcher, options)
-    return Object.assign(r, { ...actions })
+    return Object.assign(r, actions)
 }
 
 export {

@@ -1,13 +1,13 @@
-# Orbital
+# Presto
 
 _\#UseThePlatform_
 
-Orbital is a bespoke, minimal UI runtime for web apps that tries to use the platform as much as possible. Orbital builds on top of web component technologies such as [custom elements](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements), [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM), [`<slot>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot), and more to create a reactive runtime with [very fast UI updates](https://lit.dev/docs/libraries/standalone-templates/#render-dynamic-data) that is easy to use without any build steps (unless you want build steps, in which it also provides full Vite support, with a meta-framework on the roadmap).
+Presto is a bespoke, minimal UI runtime for web apps that tries to use the platform as much as possible. Presto builds on top of web component technologies such as [custom elements](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements), [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM), [`<slot>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot), and more to create a reactive runtime with [very fast UI updates](https://lit.dev/docs/libraries/standalone-templates/#render-dynamic-data) that is easy to use without any build steps (unless you want build steps, in which it also provides full Vite support, with a meta-framework on the roadmap).
 
 ## Example
 
 ```ts
-import { createElement, createSignal, createMemo, html, z } from "orbital"
+import { createElement, createSignal, createMemo, html, z } from "presto"
 
 // Runtime prop validation with Zod
 const galleryProps = z.object({
@@ -65,15 +65,15 @@ customElements.define("app-gallery", Gallery)
 -   [x] Client-side rendering
 -   [x] Event handlers
 -   [x] Global context
--   [x] Reactive scoped styles
+-   [ ] Reactive scoped styles
 -   [x] Children (`<slot>`)
--   [x] Client-side routing
--   [x] Parallel route loaders
--   [x] Lifecycle functions
--   [x] Reactive attributes
--   [ ] Reactive properties
--   [ ] Scoped context
--   [ ] Synchronous context
+-   [ ] Client-side routing
+-   [ ] Parallel route loaders
+-   [ ] Lifecycle functions
+-   [ ] Reactive attributes
+-   [x] Reactive properties
+-   [x] Scoped context
+-   [x] Synchronous context
 -   [ ] Nested routing
 -   [ ] Form actions
 -   [ ] Error boundaries

@@ -1,9 +1,8 @@
 {
     "compilerOptions": {
-        "target": "ES2019",
-        "useDefineForClassFields": true,
         "module": "ESNext",
-        "lib": ["ES2020", "DOM", "DOM.Iterable"],
+        "target": "es2022",
+        "lib": ["ESNext", "DOM", "ESNext.Decorators"],
         "skipLibCheck": true,
 
         /* Bundler mode */
